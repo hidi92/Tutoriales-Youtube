@@ -1,0 +1,42 @@
+Pagina Web de Zigbee2MQTT para el Flasheo del Dongle Sonoff:
+https://www.zigbee2mqtt.io/guide/adapters/#recommended
+
+ZigStar GW Multi tool:
+https://github.com/xyzroe/ZigStarGW-MT
+
+Drivers del Dongle de Sonoff:
+https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+
+Comandos para instalar drivers del controlador USB en el NAS Synology:
+/sbin/modprobe usbserial
+/sbin/modprobe ftdi_sio
+/sbin/modprobe cdc-acm
+cd /lib/modules
+
+Descargamos el controlador USB que necesitemos, en mi caso es el cp210x y lo descargamos para la plataforma que este usando nuestro NAS:
+https://kb.synology.com/es-es/DSM/tutorial/What_kind_of_CPU_does_my_NAS_have
+
+Y el repositorio de los controladores esta aqui:
+https://github.com/robertklep/dsm7-usb-serial-drivers
+
+En mi caso entonces seria: 
+wget https://github.com/robertklep/dsm7-usb-serial-drivers/blob/main/modules/apollolake/cp210x.ko
+
+Ahora descargamos un Script para que siempre cargue el controlador al iniciar el sistema:
+cd /usr/local/etc/rc.d
+wget https://github.com/robertklep/dsm7-usb-serial-drivers/blob/main/usb-serial-drivers.sh
+/usr/local/etc/rc.d/usb-serial-drivers.sh start
+
+Ahora conectamos nuestro controlador Zigbee, y si todo ha ido bien deberia de aparecer: ttyUSB0 al ejecutar el siguiente comando:
+ls /dev/ttyU*
+
+
+Comando instalacion de contenedor Docker de Zigbee2MQTT
+docker run -itd --name="Zigbee2MQTT" --net=host -e TZ=Europe/Madrid --device=/dev/ttyUSB0 --restart=always -v /volume1/docker/zigbee2mqtt/data:/app/data koenkk/zigbee2mqtt:latest
+
+Para el archivo de configuration.yaml del contenedor Zigbee2MQTT
+frontend:
+  #Opcional, por defecto 8080 o elige el que tu quieras
+  port: 8080
+  #IP del dispositivo que esta ejecutando Zigbee2MQTT
+  host: 192.168.86.12
